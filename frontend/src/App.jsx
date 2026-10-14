@@ -9,16 +9,100 @@ import {
   Menu,
   X,
   CheckCircle2,
-  ExternalLink,
   ChevronRight,
   Clock,
-  Mail,
   Award
 } from "lucide-react";
 
+import gardenNetImg from "./images/garden-net.jpg";
+import acPardaImg from "./images/ac-parda.jpg";
+import maccharDaniImg from "./images/macchar-dani.jpg";
+import plasticTirpalImg from "./images/plastic-tirpal.jpg";
+import truckTirpalImg from "./images/truck-tirpal.jpg";
+import armyTentImg from "./images/army-tent.jpg";
+
+// Map IDs to bundled image imports
+const imageMap = {
+  "garden-net": gardenNetImg,
+  "ac-parda": acPardaImg,
+  "macchar-dani": maccharDaniImg,
+  "plastic-tirpal": plasticTirpalImg,
+  "truck-tirpal": truckTirpalImg,
+  "army-tent": armyTentImg,
+};
+
+const DEFAULT_PRODUCTS = [
+  {
+    id: "garden-net",
+    title_en: "Garden Shade Net",
+    title_hi: "गार्डन नेट",
+    category: "Gardening & Agro",
+    image: gardenNetImg,
+    description: "High-density UV stabilized agro shade net for gardens, nursery protection, terrace shade, and outdoor sitting areas.",
+    features: ["UV Protected (50%-90% shading)", "Tear Resistant & Durable", "Weatherproof & Breathable"],
+    price_per_unit: "₹12 / sq.ft",
+    popular_sizes: ["10x10 ft", "10x20 ft", "15x30 ft", "Custom Roll"]
+  },
+  {
+    id: "ac-parda",
+    title_en: "AC PVC Strip Curtain",
+    title_hi: "ए.सी. पर्दा",
+    category: "Commercial & Home",
+    image: acPardaImg,
+    description: "Transparent PVC insulating strip curtains designed to prevent AC cooling loss, block dust, smoke, and maintain indoor temperature.",
+    features: ["Crystal clear visibility", "Reduces electricity bills", "Effective dust & insect barrier"],
+    price_per_unit: "₹180 / strip",
+    popular_sizes: ["7x3 ft Door", "8x4 ft Door", "Custom Industrial Size"]
+  },
+  {
+    id: "macchar-dani",
+    title_en: "Mosquito Bed Net",
+    title_hi: "मच्छरदानी",
+    category: "Household",
+    image: maccharDaniImg,
+    description: "Breathable fine-mesh mosquito netting suitable for single, double, and king-size beds. Available in hanging and foldable styles.",
+    features: ["Dense anti-mosquito micro-mesh", "Easy ceiling suspension hooks", "Washable & durable fabric"],
+    price_per_unit: "₹450 / pc",
+    popular_sizes: ["Single Bed (3x6 ft)", "Double Bed (6x6 ft)", "King Size (6.5x7 ft)"]
+  },
+  {
+    id: "plastic-tirpal",
+    title_en: "Multipurpose Plastic Tarpaulin",
+    title_hi: "प्लास्टिक तिरपाल",
+    category: "Waterproof Tarpaulins",
+    image: plasticTirpalImg,
+    description: "Heavy-duty waterproof polyethylene tarpaulin in yellow, blue, and black for covering grains, bricks, bike/car covers, and ground sheds.",
+    features: ["100% Waterproof & Leak-proof", "Rust-proof eyelets on all edges", "Multi-layer laminate"],
+    price_per_unit: "₹18 / sq.ft",
+    popular_sizes: ["9x12 ft", "12x18 ft", "18x24 ft", "24x30 ft"]
+  },
+  {
+    id: "truck-tirpal",
+    title_en: "Heavy-Duty Truck Tarpaulin",
+    title_hi: "ट्रक तिरपाल",
+    category: "Commercial Transport",
+    image: truckTirpalImg,
+    description: "Industrial grade rubberized/PVC truck cover tarpaulin for long-distance transport, logistics, and rainy season cargo protection.",
+    features: ["High tensile strength 550+ GSM", "Double heat-sealed joints", "Heavy rope reinforced hem"],
+    price_per_unit: "₹35 / sq.ft",
+    popular_sizes: ["18x24 ft", "20x28 ft", "24x36 ft", "Custom Truck Body"]
+  },
+  {
+    id: "army-tent",
+    title_en: "Army & Relief Canvas Tent",
+    title_hi: "आर्मी टेंट",
+    category: "Tents & Shelters",
+    image: armyTentImg,
+    description: "All-weather heavy duty military style canvas tent with windows, ventilation, and metal frame poles. Ideal for camps, disaster relief, and sites.",
+    features: ["Heavy cotton/poly canvas", "Wind & rain resistant", "Complete with poles, pegs, and ropes"],
+    price_per_unit: "₹14,500 / tent",
+    popular_sizes: ["10x12 ft (4-6 persons)", "14x14 ft (8-10 persons)", "18x24 ft (Command/Dorm)"]
+  }
+];
+
 export default function App() {
-  const [products, setProducts] = useState([]);
-  const [activeTab, setActiveTab] = useState("catalog"); // 'catalog' | 'about' | 'contact'
+  const [products, setProducts] = useState(DEFAULT_PRODUCTS);
+  const [activeTab, setActiveTab] = useState("catalog");
   const [selectedCategory, setSelectedCategory] = useState("All");
   const [activeProduct, setActiveProduct] = useState(null);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -29,10 +113,21 @@ export default function App() {
   const PHONE_2 = "8445576040";
 
   useEffect(() => {
+    // If backend is active locally, fetch from it; otherwise keep DEFAULT_PRODUCTS
     fetch("http://localhost:8000/api/products")
       .then((res) => res.json())
-      .then((data) => setProducts(data))
-      .catch((err) => console.error("Error loading products:", err));
+      .then((data) => {
+        if (Array.isArray(data) && data.length > 0) {
+          const merged = data.map((item) => ({
+            ...item,
+            image: imageMap[item.id] || item.image,
+          }));
+          setProducts(merged);
+        }
+      })
+      .catch(() => {
+        // Backend offline (e.g. GitHub Pages) - DEFAULT_PRODUCTS remains active
+      });
   }, []);
 
   const categories = ["All", ...new Set(products.map((p) => p.category))];
@@ -302,10 +397,9 @@ export default function App() {
         </div>
       </section>
 
-      {/* 5. DYNAMIC TAB CONTENT */}
+      {/* 5. PRODUCT CATALOG */}
       {activeTab === "catalog" && (
         <main className="flex-1 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 w-full">
-          {/* Header & Filter Controls */}
           <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-8 border-b border-slate-200 pb-6">
             <div>
               <span className="text-xs font-bold text-red-600 uppercase tracking-widest">
@@ -319,7 +413,6 @@ export default function App() {
               </p>
             </div>
 
-            {/* Scrollable category pills on mobile */}
             <div className="flex overflow-x-auto pb-2 md:pb-0 gap-2 no-scrollbar">
               {categories.map((cat) => (
                 <button
@@ -337,23 +430,17 @@ export default function App() {
             </div>
           </div>
 
-          {/* Product Grid */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {filteredProducts.map((p) => (
               <div
                 key={p.id}
                 className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col group"
               >
-                {/* Product Image */}
                 <div className="relative h-64 bg-slate-100 overflow-hidden">
                   <img
                     src={p.image}
                     alt={p.title_en}
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                    onError={(e) => {
-                      e.target.onerror = null;
-                      e.target.src = "https://images.unsplash.com/photo-1585320806297-9794b3e4eeae?w=600";
-                    }}
                   />
                   <div className="absolute top-3 left-3 bg-red-700 text-white text-xs font-bold px-3 py-1 rounded-md shadow-md uppercase tracking-wider">
                     {p.title_hi}
@@ -363,7 +450,6 @@ export default function App() {
                   </div>
                 </div>
 
-                {/* Card Details */}
                 <div className="p-5 flex-1 flex flex-col justify-between space-y-4">
                   <div>
                     <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
@@ -376,7 +462,6 @@ export default function App() {
                       {p.description}
                     </p>
 
-                    {/* Features list */}
                     <div className="mt-4 space-y-1.5">
                       {p.features?.map((f, i) => (
                         <div key={i} className="flex items-center text-xs text-slate-700">
@@ -422,6 +507,7 @@ export default function App() {
         </main>
       )}
 
+      {/* ABOUT TAB */}
       {activeTab === "about" && (
         <section className="flex-1 max-w-5xl mx-auto px-4 py-12 w-full space-y-10">
           <div className="text-center space-y-3">
@@ -455,12 +541,13 @@ export default function App() {
         </section>
       )}
 
+      {/* CONTACT TAB */}
       {activeTab === "contact" && (
         <section className="flex-1 max-w-5xl mx-auto px-4 py-12 w-full space-y-10">
           <div className="text-center space-y-3">
             <span className="text-xs font-bold text-red-600 uppercase tracking-widest">Reach Out</span>
             <h2 className="text-3xl font-black text-slate-900">Contact & Place Orders</h2>
-            <p className="text-slate-600 text-sm max-w-xl mx-auto">
+            <p className="text-slate-600 text-sm max-xl mx-auto">
               Call us directly or send a message on WhatsApp for instant quote estimations, bulk orders, and sample questions.
             </p>
           </div>
@@ -535,7 +622,7 @@ export default function App() {
         </section>
       )}
 
-      {/* 6. MODAL FOR QUOTES */}
+      {/* MODAL */}
       {activeProduct && (
         <div className="fixed inset-0 bg-slate-900/60 z-50 flex items-center justify-center p-4 backdrop-blur-sm">
           <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl relative border border-slate-100">
@@ -631,7 +718,7 @@ export default function App() {
         </div>
       )}
 
-      {/* 7. FOOTER */}
+      {/* FOOTER */}
       <footer className="bg-slate-900 text-slate-300 pt-12 pb-24 md:pb-12 border-t border-slate-800">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid grid-cols-1 md:grid-cols-3 gap-8">
           <div className="space-y-3">
@@ -679,13 +766,13 @@ export default function App() {
         </div>
       </footer>
 
-      {/* 8. MOBILE BOTTOM STICKY ACTION BAR */}
+      {/* MOBILE BOTTOM STICKY ACTION BAR */}
       <div className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 p-2.5 z-40 flex gap-2 shadow-2xl">
         <a
           href={`tel:${PHONE_1}`}
           className="flex-1 bg-red-700 hover:bg-red-800 text-white font-bold py-2.5 rounded-xl text-xs flex items-center justify-center gap-1.5 shadow"
         >
-          <Phone size={14} /> Call 9412516083
+          <Phone size={14} /> Call {PHONE_1}
         </a>
         <a
           href={`https://wa.me/91${PHONE_1}?text=${encodeURIComponent("Hello JP & Company, I want to inquire about your products.")}`}
